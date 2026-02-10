@@ -18,22 +18,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Enable corepack and pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '25.x'
-          cache: 'pnpm'
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install --no-audit --no-fund
 
       - name: Build
-        run: pnpm run build
+        run: npm run build
 
       - name: Prepare release package (remove prepare script)
         env:
@@ -51,7 +46,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           TAG=${GITHUB_REF#refs/tags/}
-          git add package.json dist || true
+          git add package.json
+          git add -f dist || true
           if git diff --cached --quiet; then
             echo "No build changes to commit"
           else
