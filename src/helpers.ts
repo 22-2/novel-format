@@ -35,8 +35,15 @@ export function processNovelLines(
       continue;
     }
 
-    // セリフ判定（「 または 『 または （ で始まる）
-    const isDialogue = /^([「『（])/.test(trimmed);
+    // セリフ判定（行頭が対応する開きカッコで始まり、行末が対応する閉じカッコで終わる）
+    const bracketPairs: Record<string, string> = {
+      "「": "」",
+      "『": "』",
+      "（": "）",
+    };
+    const firstChar = trimmed.charAt(0);
+    const expectedCloser = bracketPairs[firstChar];
+    const isDialogue = expectedCloser ? trimmed.endsWith(expectedCloser) : false;
 
     // 1. 句点で改行する（セリフは除外）
     const normalizedLines = isDialogue
