@@ -20,3 +20,4 @@ export function formatNovelTextCore(
 
 export * from "./types";
 export * from "./constants";
+export { preprocessMarkdown } from "./preprocess"
