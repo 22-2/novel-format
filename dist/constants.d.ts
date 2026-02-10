@@ -1,0 +1,1 @@
+export declare const SECTION_SEPARATOR = "\u2666\uFE0F\u25C6\u2666\uFE0F\u25C6\u2666\uFE0F\u25C6";
