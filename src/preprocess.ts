@@ -1,33 +1,33 @@
 import { SECTION_SEPARATOR } from "./constants";
 
 /**
- * Pre-processes markdown text to handle list structures and @split suffix.
- * - Flattens lists by removing parent items.
- * - Replaces lines with @split suffix with the separator.
- * - Strips list markers from leaf items.
- * - Between sibling parent groups, inserts exactly 2 blank lines.
- * - Empty leaf items ("- " with no content) become blank lines within a group.
- * - Leading/trailing empty leaf items within a group are stripped.
+ * リスト構造と@splitサフィックスを処理するためにMarkdownテキストを前処理します。
+ * - 親アイテムを削除してリストをフラット化します。
+ * - @splitサフィックスを持つ行をセパレータに置換します。
+ * - リーフアイテムからリストマーカーを除去します。
+ * - 兄弟関係にある親グループの間に、正確に2つの空行を挿入します。
+ * - 空のリーフアイテム（内容のない"- "）は、グループ内の空行になります。
+ * - グループ内の先頭/末尾の空のリーフアイテムは削除されます。
  */
 export function preprocessMarkdown(body: string, separator: string = SECTION_SEPARATOR): string {
   const rawLines = body.split(/\r\n|\n|\r/);
 
-  // ---- Step 1: Annotate each line ----
+  // ---- ステップ 1: 各行に注釈を付ける ----
   const meta = rawLines.map(raw => {
     const indent = raw.match(/^(\s*)/)?.[1]?.length ?? 0;
     const trimmed = raw.trim();
     const isBlank = trimmed === "";
     const hasSplit = !isBlank && trimmed.includes("@split");
-    // Matches "- text", "- ", "-", "* text", "* ", "*"
+    // "- text"、"- "、"-"、"* text"、"* "、"*" にマッチします
     const listMatch = !hasSplit ? trimmed.match(/^[-*](\s(.*))?$/) : null;
     const isList = listMatch !== null;
-    // Content after the list marker; null means the item is empty
+    // リストマーカーの後の内容。nullはアイテムが空であることを意味します
     const listContent = isList ? (listMatch![2]?.trim() || null) : null;
     return { raw, indent, trimmed, isBlank, hasSplit, isList, listContent };
   });
 
-  // ---- Step 2: Parent detection ----
-  // A list item is a "parent" if the next non-blank list item is more indented.
+  // ---- ステップ 2: 親の検出 ----
+  // 次の空行でないリストアイテムがより深くインデントされている場合、そのリストアイテムは「親」です。
   function isParent(idx: number): boolean {
     const cur = meta[idx]!;
     for (let j = idx + 1; j < meta.length; j++) {
@@ -39,22 +39,22 @@ export function preprocessMarkdown(body: string, separator: string = SECTION_SEP
     return false;
   }
 
-  // ---- Step 3: Process ----
+  // ---- ステップ 3: 処理 ----
   const resultLines: string[] = [];
 
-  // Current parent-group buffer.
-  // null entry = blank line (from an empty leaf item or a blank line inside a list block).
+  // 現在の親グループバッファ。
+  // nullエントリ = 空行（空のリーフアイテム、またはリストブロック内の空行から）。
   let groupBuffer: Array<string | null> | null = null;
-  // Whether we have already emitted at least one list group to resultLines.
+  // すでに少なくとも1つのリストグループをresultLinesに出力したかどうか。
   let hadPreviousGroup = false;
 
   function flushGroup() {
     if (groupBuffer === null) return;
 
-    // Trim leading blank entries
+    // 先頭の空エントリを削除
     let a = 0;
     while (a < groupBuffer.length && groupBuffer[a] === null) a++;
-    // Trim trailing blank entries
+    // 末尾の空エントリを削除
     let b = groupBuffer.length - 1;
     while (b >= a && groupBuffer[b] === null) b--;
 
@@ -64,7 +64,7 @@ export function preprocessMarkdown(body: string, separator: string = SECTION_SEP
     if (trimmed.length === 0) return;
 
     if (hadPreviousGroup) {
-      // Insert exactly 2 blank lines between groups
+      // グループの間に正確に2つの空行を挿入
       resultLines.push("", "");
     }
     for (const entry of trimmed) {
@@ -76,7 +76,7 @@ export function preprocessMarkdown(body: string, separator: string = SECTION_SEP
   for (let i = 0; i < meta.length; i++) {
     const line = meta[i]!;
 
-    // @split: flush any open group then emit separator
+    // @split: 開いているグループをフラッシュし、セパレータを出力
     if (line.hasSplit) {
       flushGroup();
       hadPreviousGroup = false;
@@ -84,30 +84,30 @@ export function preprocessMarkdown(body: string, separator: string = SECTION_SEP
       continue;
     }
 
-    // Parent list item: start a new group (flushing the previous one)
+    // 親リストアイテム: 新しいグループを開始（前のグループはフラッシュ）
     if (line.isList && isParent(i)) {
       flushGroup();
       groupBuffer = [];
       continue;
     }
 
-    // Leaf list item (possibly empty)
+    // リーフリストアイテム（空の可能性あり）
     if (line.isList) {
       if (groupBuffer === null) {
-        // Leaf without a preceding parent — treat as its own group
+        // 先行する親がないリーフ — 独自のグループとして扱う
         groupBuffer = [];
       }
       groupBuffer.push(line.listContent); // null for empty, string for content
       continue;
     }
 
-    // Blank line inside a list group → becomes a blank entry in the group
+    // リストグループ内の空行 → グループ内の空のエントリになる
     if (line.isBlank && groupBuffer !== null) {
       groupBuffer.push(null);
       continue;
     }
 
-    // Plain non-list line: flush any open group, then pass through as-is
+    // 通常の非リスト行: 開いているグループをフラッシュし、そのまま渡す
     flushGroup();
     hadPreviousGroup = false;
     resultLines.push(line.raw);

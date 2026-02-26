@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { preprocessMarkdown } from "./preprocess";
 
 describe("preprocessMarkdown", () => {
-  // ---- @split ----------------------------------------------------------------
+  // ---- @split キーワード -----------------------------------------------------
 
   describe("@split keyword", () => {
     test("replaces a line containing @split with the default separator", () => {
