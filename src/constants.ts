@@ -1,1 +1,1 @@
-export const SECTION_SEPARATOR = "♦️◆♦️◆♦️◆";
+export const SECTION_SEPARATOR = "＊＊＊";

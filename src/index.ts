@@ -3,7 +3,7 @@ import { FormatNovelTextOptions } from "./types";
 import { processNovelLines, reconstructNovelText } from "./helpers";
 import { SECTION_SEPARATOR } from "./constants";
 
-export function formatNovelTextCore(
+export function format(
 	text: string,
 	{ separator = SECTION_SEPARATOR }: FormatNovelTextOptions = {}
 ): string {
