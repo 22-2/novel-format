@@ -49,7 +49,6 @@ describe("preprocessMarkdown", () => {
     test("skips parent list items (item that has indented children)", () => {
       const input = "- 親\n  - 子";
       const out = preprocessMarkdown(input);
-      // 親はスキップ、子（葉）だけ残る
       expect(out).toBe("子");
     });
 
@@ -70,12 +69,68 @@ describe("preprocessMarkdown", () => {
       const out = preprocessMarkdown(input);
       expect(out).toBe("葉A\n葉B\n葉C");
     });
+  });
 
-    test("empty lines between list items do not affect parent detection", () => {
-      // 空行を挟んでも次の字下げ行が子と判定される
-      const input = "- 親\n\n  - 子";
+  // ---- グループ間の空行 (親の境界) ------------------------------------------
+
+  describe("blank lines between parent groups", () => {
+    test("case1: inserts exactly 2 blank lines between sibling parent groups", () => {
+      const input = [
+        "- 親",
+        "    - 子",
+        "    - 子",
+        "- 親",
+        "    - 子",
+      ].join("\n");
       const out = preprocessMarkdown(input);
-      expect(out).toBe("\n子");
+      expect(out).toBe("子\n子\n\n\n子");
+    });
+
+    test("case2: strips trailing/leading empty items and inserts exactly 2 blank lines", () => {
+      const input = [
+        "- 親",
+        "    - 子",
+        "    - 子",
+        "    - ",
+        "    - ",
+        "- 親",
+        "    - ",
+        "    - ",
+        "    - 子",
+      ].join("\n");
+      const out = preprocessMarkdown(input);
+      expect(out).toBe("子\n子\n\n\n子");
+    });
+
+    test("case3: preserves inner blank lines, strips boundary empty items, enforces exactly 2 blank lines", () => {
+      const input = [
+        "- 親",
+        "    - 子",
+        "    - ",
+        "    - 子",
+        "    - 親との境界のところだけ空行を無視",
+        "    - すでに２つ以上あっても、必ず空行を２つにする",
+        "    - ",
+        "    - ",
+        "    - ",
+        "- 親",
+        "    - ",
+        "    - ",
+        "    - 子",
+      ].join("\n");
+      const out = preprocessMarkdown(input);
+      expect(out).toBe(
+        [
+          "子",
+          "",
+          "子",
+          "親との境界のところだけ空行を無視",
+          "すでに２つ以上あっても、必ず空行を２つにする",
+          "",
+          "",
+          "子",
+        ].join("\n")
+      );
     });
   });
 
@@ -115,9 +170,7 @@ describe("preprocessMarkdown", () => {
       const out = preprocessMarkdown(input);
 
       expect(out).toBe(
-        ["まえがき", "セリフ一行目", "セリフ二行目", "＊＊＊", "第二幕"].join(
-          "\n"
-        )
+        ["まえがき", "セリフ一行目", "セリフ二行目", "＊＊＊", "第二幕"].join("\n")
       );
     });
   });
