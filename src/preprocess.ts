@@ -1,3 +1,4 @@
+import { SECTION_SEPARATOR } from "./constants";
 
 /**
  * Pre-processes markdown text to handle list structures and @split suffix.
@@ -5,7 +6,7 @@
  * - Replaces lines with @split suffix with the separator.
  * - Strips list markers from leaf items.
  */
-export function preprocessMarkdown(body: string, separator: string = "＊＊＊"): string {
+export function preprocessMarkdown(body: string, separator: string = SECTION_SEPARATOR): string {
   const lines = body.split(/\r\n|\n|\r/);
   const resultLines: string[] = [];
 
