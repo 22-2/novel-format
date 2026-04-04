@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { processNovelLines, reconstructNovelText } from "./helpers";
+import { processNovelLines, reconstructNovelText } from "./helpers;
 
 describe("format novel text", () => {
   test("does not break lines on 。 inside dialogue", () => {
