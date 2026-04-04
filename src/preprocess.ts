@@ -1,4 +1,4 @@
-import { SECTION_SEPARATOR } from "./constants";
+import { SECTION_SEPARATOR } from "./constants.js";
 
 /**
  * リスト構造と@splitサフィックスを処理するためにMarkdownテキストを前処理します。
