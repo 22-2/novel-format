@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { preprocessMarkdown } from "./preprocess;
+import { preprocessMarkdown } from "./preprocess";
 
 describe("preprocessMarkdown", () => {
   // ---- @split キーワード -----------------------------------------------------

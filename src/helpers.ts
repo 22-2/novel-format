@@ -1,4 +1,4 @@
-import { FormatNovelTextOptions, ProcessedLine } from "./types;
+import { FormatNovelTextOptions, ProcessedLine } from "./types";
 
 /**
  * 本文を行ごとに処理して小説形式に整形します

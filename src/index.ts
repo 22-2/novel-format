@@ -1,7 +1,7 @@
-import { splitMd, generateMdText } from "./markdown;
-import { FormatNovelTextOptions } from "./types;
-import { processNovelLines, reconstructNovelText } from "./helpers;
-import { SECTION_SEPARATOR } from "./constants;
+import { splitMd, generateMdText } from "./markdown";
+import { FormatNovelTextOptions } from "./types";
+import { processNovelLines, reconstructNovelText } from "./helpers";
+import { SECTION_SEPARATOR } from "./constants";
 
 export function format(
 	text: string,
@@ -18,6 +18,6 @@ export function format(
 	return resultBody;
 }
 
-export * from "./types;
-export * from "./constants;
-export { preprocessMarkdown } from "./preprocess;
+export * from "./types";
+export * from "./constants";
+export { preprocessMarkdown } from "./preprocess";
