@@ -10,8 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "prepare": "pnpm run build"
+    "build": "tsc -p tsconfig.build.json"
   },
   "exports": {
     ".": {
