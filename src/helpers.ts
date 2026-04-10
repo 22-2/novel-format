@@ -54,7 +54,11 @@ export function processNovelLines(
       if (normalizedTrimmed === "") continue;
 
       // 2. 字下げする（セリフ以外）
-      const newText = !isDialogue ? `　${normalizedTrimmed}` : normalizedTrimmed;
+      // 見出し行（Markdownの `#` で始まる行）は字下げしない。
+      // 理由: 見出しを字下げすると見た目やMarkdownの構造が壊れるため、
+      // 本処理では意図的に見出しはそのまま出力する。
+      const isHeading = /^#{1,6}\s+/.test(normalizedTrimmed);
+      const newText = !isDialogue && !isHeading ? `　${normalizedTrimmed}` : normalizedTrimmed;
 
       processedLines.push({
         text: newText,
