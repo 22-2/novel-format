@@ -76,7 +76,10 @@ export function processNovelLines(
 /**
  * 処理された行データからテキストを再構築します
  */
-export function reconstructNovelText(processedLines: ProcessedLine[]): string {
+export function reconstructNovelText(
+  processedLines: ProcessedLine[],
+  options: FormatNovelTextOptions = {},
+): string {
   if (processedLines.length === 0) return "";
 
   const emptyLinesToSeparator = (emptyLines: number) => "\n".repeat(emptyLines + 1);
@@ -99,12 +102,14 @@ export function reconstructNovelText(processedLines: ProcessedLine[]): string {
       const isDialogueToDialogue =
         !!prev && !current.isSeparator && !prev.isSeparator && current.isDialogue && prev.isDialogue;
 
+      const preserveDialogue = !!options.preserveDialogueSpacing;
+
       // セパレータ行の前後は必ず空行3つ
       // セリフ⇄地の文の境目は必ず空行2つ
       const emptyLinesBetween = current.isSeparator || prev?.isSeparator
         ? 3
         : isDialogueToDialogue
-          ? 0
+          ? (preserveDialogue ? current.precedingEmptyLineCount : 0)
         : isDialogueBoundary
           ? 2
           : current.precedingEmptyLineCount > 0

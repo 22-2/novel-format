@@ -14,4 +14,9 @@ export interface FormatNovelTextOptions {
    * セパレータ行の前後は「空行3つ」に正規化されます。
    */
   separator?: string;
+  /**
+   * セリフ同士が連続する場合に、元テキストの空行を保持するかどうか。
+   * デフォルト: false（セリフ間の余分な空行は詰められる）
+   */
+  preserveDialogueSpacing?: boolean;
 }
