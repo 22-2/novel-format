@@ -57,10 +57,12 @@ jobs:
           git push origin "refs/tags/${RELEASE_TAG}" --force
 
       - name: Package release assets
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           mkdir -p release-assets
-          zip -r "release-assets/novel-format-${GITHUB_REF_NAME}-dist.zip" dist
-          tar -czf "release-assets/novel-format-${GITHUB_REF_NAME}-dist.tar.gz" -C . dist
+          zip -r "release-assets/novel-format-${RELEASE_TAG}-dist.zip" dist
+          tar -czf "release-assets/novel-format-${RELEASE_TAG}-dist.tar.gz" -C . dist
 
       - name: Create GitHub Release
         env:
