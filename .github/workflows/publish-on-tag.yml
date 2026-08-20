@@ -35,10 +35,16 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Package release assets
+        run: |
+          mkdir -p release-assets
+          zip -r "release-assets/novel-format-${GITHUB_REF_NAME}-dist.zip" dist
+          tar -czf "release-assets/novel-format-${GITHUB_REF_NAME}-dist.tar.gz" -C . dist
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes
+        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes release-assets/*
 
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public
