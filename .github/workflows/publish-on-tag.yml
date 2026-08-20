@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   publish:
@@ -31,7 +30,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
-          registry-url: https://registry.npmjs.org
           cache: pnpm
 
       - name: Install dependencies
@@ -74,6 +72,3 @@ jobs:
           else
             gh release create "${RELEASE_TAG}" --title "${RELEASE_TAG}" --generate-notes release-assets/*
           fi
-
-      - name: Publish to npm with provenance
-        run: npm publish --provenance --access public
