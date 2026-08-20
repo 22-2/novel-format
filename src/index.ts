@@ -5,11 +5,11 @@ import { SECTION_SEPARATOR } from "./constants.js";
 
 export function format(
 	text: string,
-	{ separator = SECTION_SEPARATOR, preserveDialogueSpacing }: FormatNovelTextOptions = {}
+	{ separator = SECTION_SEPARATOR, preserveDialogueSpacing, ignoreLinePrefixes }: FormatNovelTextOptions = {}
 ): string {
 	const { frontmatter, content: body } = splitMd(text);
 
-	const processedLines = processNovelLines(body, { separator });
+	const processedLines = processNovelLines(body, { separator, ignoreLinePrefixes });
 	const resultBody = reconstructNovelText(processedLines, { separator, preserveDialogueSpacing });
 
 	if (frontmatter) {

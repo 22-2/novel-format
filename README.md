@@ -34,6 +34,7 @@ pnpm build
 
 ### オプション
 
+- ignoreLinePrefixes (string[]) — 指定した文字列のいずれかで行頭が始まる行を本文から除外します。省略時は除外しません。行頭の空白は除去せずに判定します。
 - separator (string) — セクション区切りとして認識する文字列を変更できます。省略時は SECTION_SEPARATOR を使用。
 
 ### 例（簡易）

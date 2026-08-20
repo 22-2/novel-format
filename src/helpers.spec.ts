@@ -39,4 +39,24 @@ describe("format novel text", () => {
 
     expect(out).toBe("「セリフ1。」\n「セリフ2。」\n");
   });
+
+  test("ignores lines that start with one of the configured prefixes", () => {
+    const body = "地の文。\n// この行は除外\n「セリフ。」\n# 見出し";
+
+    const processed = processNovelLines(body, {
+      ignoreLinePrefixes: ["//", "#"],
+    });
+    const out = reconstructNovelText(processed);
+
+    expect(out).toBe("　地の文。\n\n\n「セリフ。」\n");
+  });
+
+  test("does not treat indented lines as prefix matches", () => {
+    const processed = processNovelLines("  // 残す", {
+      ignoreLinePrefixes: ["//"],
+    });
+
+    expect(processed).toHaveLength(1);
+    expect(processed[0]?.text).toBe("　// 残す");
+  });
 });

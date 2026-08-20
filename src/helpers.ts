@@ -14,6 +14,10 @@ export function processNovelLines(
   let precedingEmptyLineCount = 0;
 
   for (const line of lines) {
+    if (options.ignoreLinePrefixes?.some((prefix) => line.startsWith(prefix))) {
+      continue;
+    }
+
     const trimmed = line.trim();
     if (trimmed === "") {
       precedingEmptyLineCount++;

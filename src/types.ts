@@ -9,6 +9,11 @@ export interface ProcessedLine {
 
 export interface FormatNovelTextOptions {
   /**
+   * 行頭がいずれかの文字列で始まる行を、本文から除外します。
+   * デフォルト: []
+   */
+  ignoreLinePrefixes?: string[];
+  /**
    * セパレータ文字列。
    * 元テキストにこの文字列を含む行があれば、段落区切りとして認識します。
    * セパレータ行の前後は「空行3つ」に正規化されます。
