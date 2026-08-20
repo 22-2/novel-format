@@ -18,6 +18,16 @@ This package uses TypeScript. When installed via Git, the `prepare` script runs 
 
 pnpm install
 pnpm build
+
+## リリース
+
+リリース番号の更新、コミット、タグ作成は `release-it` で行います。
+
+```sh
+pnpm release
+```
+
+タグの push を契機に GitHub Actions がテスト・ビルドを実行し、GitHub Release を作成してから npm Trusted Publishing (OIDC) で npm に公開します。初回のみ npm のパッケージ設定で、Trusted Publisher に `22-2/novel-format` と `.github/workflows/publish-on-tag.yml` を登録してください。
 ## フォーマット仕様 (日本語小説向け)
 
 以下はこのパッケージが行う本文フォーマットの概要です。主に日本語小説のプレーンテキスト／Markdown本文を読みやすい小説形式に整形します。
