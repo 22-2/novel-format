@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - '*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to rebuild
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -35,6 +43,21 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Include dist in release tag
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));if(p.scripts?.prepare){delete p.scripts.prepare;if(Object.keys(p.scripts).length===0)delete p.scripts;}fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git add -f dist
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): build for ${RELEASE_TAG}"
+          fi
+          git tag -f "${RELEASE_TAG}"
+          git push origin "refs/tags/${RELEASE_TAG}" --force
+
       - name: Package release assets
         run: |
           mkdir -p release-assets
@@ -44,7 +67,13 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes release-assets/*
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" release-assets/* --clobber
+          else
+            gh release create "${RELEASE_TAG}" --title "${RELEASE_TAG}" --generate-notes release-assets/*
+          fi
 
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public
