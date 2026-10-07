@@ -1,23 +1,5 @@
-import { splitMd, generateMdText } from "./markdown.js";
-import type { FormatNovelTextOptions } from "./types.js";
-import { processNovelLines, reconstructNovelText } from "./helpers.js";
-import { SECTION_SEPARATOR } from "./constants.js";
-
-export function format(
-	text: string,
-	{ separator = SECTION_SEPARATOR, preserveDialogueSpacing, ignoreLinePrefixes }: FormatNovelTextOptions = {}
-): string {
-	const { frontmatter, content: body } = splitMd(text);
-
-	const processedLines = processNovelLines(body, { separator, ignoreLinePrefixes });
-	const resultBody = reconstructNovelText(processedLines, { separator, preserveDialogueSpacing });
-
-	if (frontmatter) {
-		return generateMdText(resultBody, frontmatter);
-	}
-	return resultBody;
-}
-
-export * from "./types.js";
-export * from "./constants.js";
+export { format } from "./format.js";
+export { compile } from "./compile.js";
+export { SECTION_SEPARATOR, SPLIT_MARKER } from "./constants.js";
+export type { CompileOptions, FormatOptions } from "./types.js";
 export { preprocessMarkdown } from "./preprocess.js";

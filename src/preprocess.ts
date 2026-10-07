@@ -1,6 +1,8 @@
-import { SECTION_SEPARATOR } from "./constants.js";
+import { SECTION_SEPARATOR, SPLIT_MARKER } from "./constants.js";
 
 /**
+ * @deprecated リストの平坦化は今後使わない予定のため非推奨。`@split` の変換は compile を使う。
+ *
  * リスト構造と@splitサフィックスを処理するためにMarkdownテキストを前処理します。
  * - 親アイテムを削除してリストをフラット化します。
  * - @splitサフィックスを持つ行をセパレータに置換します。
@@ -17,7 +19,7 @@ export function preprocessMarkdown(body: string, separator: string = SECTION_SEP
     const indent = raw.match(/^(\s*)/)?.[1]?.length ?? 0;
     const trimmed = raw.trim();
     const isBlank = trimmed === "";
-    const hasSplit = !isBlank && trimmed.includes("@split");
+    const hasSplit = !isBlank && trimmed.includes(SPLIT_MARKER);
     // "- text"、"- "、"-"、"* text"、"* "、"*" にマッチします
     const listMatch = !hasSplit ? trimmed.match(/^[-*](\s(.*))?$/) : null;
     const isList = listMatch !== null;

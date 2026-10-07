@@ -1,27 +1,21 @@
-
-export interface ProcessedLine {
-  text: string;
-  isDialogue: boolean;
-  /** 直前の連続空行数（0以上） */
-  precedingEmptyLineCount: number;
-  isSeparator: boolean;
-}
-
-export interface FormatNovelTextOptions {
+export interface FormatOptions {
   /**
-   * 行頭がいずれかの文字列で始まる行を、本文から除外します。
-   * デフォルト: []
-   */
-  ignoreLinePrefixes?: string[];
-  /**
-   * セパレータ文字列。
-   * 元テキストにこの文字列を含む行があれば、段落区切りとして認識します。
-   * セパレータ行の前後は「空行3つ」に正規化されます。
+   * 区切り記号。この文字列を含む行は区切り行として扱い、前後を空行3つにそろえる。
+   * デフォルト: SECTION_SEPARATOR（`＊＊＊`）
    */
   separator?: string;
   /**
-   * セリフ同士が連続する場合に、元テキストの空行を保持するかどうか。
-   * デフォルト: false（セリフ間の余分な空行は詰められる）
+   * 行頭がいずれかの文字列で始まる行をコメント行として扱う。
+   * format では手を加えずに残し、compile では除去する。
+   * 行頭の空白は除去せずに判定する。見出し（`# 見出し`）はこの設定より優先される。
+   * デフォルト: []
+   */
+  commentPrefixes?: string[];
+  /**
+   * セリフが連続するとき、元テキストの空行を保持するかどうか。
+   * デフォルト: false（セリフ同士の間の空行は詰める）
    */
   preserveDialogueSpacing?: boolean;
 }
+
+export type CompileOptions = FormatOptions;

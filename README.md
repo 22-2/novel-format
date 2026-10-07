@@ -1,23 +1,144 @@
 # @22-2/novel-format
 
-Text formatting utilities for novels (formatting, markdown helpers)
+日本語小説の原稿を整形するライブラリです。Obsidian などで書いた Markdown 原稿を前提にしています。
 
-## Usage
+- `format`: 原稿を小説形式に整えます。行は削除しません。原稿ファイルを書き換える用途向けです。
+- `compile`: 執筆用の要素（見出し・コメント・フロントマターなど）を取り除き、そのまま投稿できるテキストにします。
 
-Install from Git:
+## インストール
 
-pnpm add git+https://github.com/22-2/novel-format.git
+```sh
+pnpm add github:22-2/novel-format#2.0.0
+```
 
-Then in TypeScript/JS:
+## 使い方
 
-import { formatNovelTextCore } from "@22-2/novel-format";
+```ts
+import { compile, format } from "@22-2/novel-format";
 
-## Build
+const formatted = format(text, { commentPrefixes: ["//"] });
+const publishable = compile(text, { commentPrefixes: ["//"] });
+```
 
-This package uses TypeScript. When installed via Git, the `prepare` script runs to build `dist` automatically.
+### 例
 
+原稿:
+
+```md
+---
+title: サンプル
+---
+
+## 区切り見出し
+
+テキスト。続き。
+%%あとで直す%%
+
+「セリフ」
+@split
+## 区切り見出し
+テキスト
+```
+
+`format` の結果:
+
+```md
+---
+title: サンプル
+---
+
+## 区切り見出し
+
+
+　テキスト。
+　続き。
+%%あとで直す%%
+
+
+「セリフ」
+
+
+
+@split
+
+
+
+## 区切り見出し
+
+
+　テキスト
+```
+
+`compile` の結果:
+
+```md
+　テキスト。
+　続き。
+
+
+「セリフ」
+
+
+
+＊＊＊
+
+
+
+　テキスト
+```
+
+## 整形ルール
+
+`format` と `compile` に共通のルールです。
+
+- 地の文: 句点（`。`）のあとで改行し、全角スペースで字下げします。閉じカッコ（`」』）`）が続く句点では改行しません。
+- セリフ: `「」`・`『』`・`（）` で始まり対応する閉じカッコで終わる行です。改行も字下げもしません。
+- 空行（上にあるものほど優先）:
+  1. 区切り行の前後は空行3つ
+  2. 見出しの前後は空行2つ
+  3. セリフ同士の間は空行なし（`preserveDialogueSpacing` で元の空行数を保持）
+  4. セリフと地の文の境目は空行2つ
+  5. それ以外は、元の空行があれば空行2つ、なければ空行なし
+
+### `format` だけのルール
+
+- フロントマター、見出し（`#` 〜 `######` + 空白）、区切り記号、`@split` は残します。見出しは字下げしません。
+- コメント（`%%…%%` と `commentPrefixes` で始まる行）は手を加えずに残します。
+  - コメント行の前の空行数も元のまま残します。
+  - 行の中の `%%…%%` に含まれる句点では改行しません。
+
+### `compile` だけのルール
+
+- フロントマターを除去します。
+- `%%…%%` を除去します。コメントだけの行は行ごと消えます。
+- `commentPrefixes` で始まる行を除去します。
+- 見出しを除去し、その位置を空行2つにします。
+- `@split` を区切り記号に置き換えます。
+
+## オプション
+
+| オプション | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `separator` | `string` | `SECTION_SEPARATOR`（`＊＊＊`） | この文字列を含む行を区切り行として扱います。`compile` では `@split` をこの文字列に置き換えます。 |
+| `commentPrefixes` | `string[]` | `[]` | 行頭がいずれかで始まる行をコメント行として扱います。行頭の空白は除去せずに判定します。見出しはこの設定より優先されるので、`#` を指定しても `## 見出し` はコメントになりません。 |
+| `preserveDialogueSpacing` | `boolean` | `false` | セリフ同士の間の空行を元のまま保持します。 |
+
+## 1.x からの移行
+
+- `format` の `ignoreLinePrefixes` は廃止しました。行を除去したい場合は `compile` の `commentPrefixes` を使ってください。`format` に渡した `commentPrefixes` の行は除去されず、そのまま残ります。
+- `@split` の変換は `compile` が行います。
+- `preprocessMarkdown` は非推奨です（リストの平坦化は今後使わない予定です）。
+- `ProcessedLine` 型と `FormatNovelTextOptions` 型の公開をやめました。オプションの型は `FormatOptions` / `CompileOptions` です。
+
+## 開発
+
+```sh
 pnpm install
+pnpm test
 pnpm build
+```
+
+Git からインストールした場合は `prepare` スクリプトで `dist` がビルドされます。
 
 ## リリース
 
@@ -27,50 +148,4 @@ pnpm build
 pnpm release
 ```
 
-タグの push を契機に GitHub Actions がテスト・ビルドを実行し、GitHub Release を作成してから npm Trusted Publishing (OIDC) で npm に公開します。初回のみ npm のパッケージ設定で、Trusted Publisher に `22-2/novel-format` と `.github/workflows/publish-on-tag.yml` を登録してください。
-## フォーマット仕様 (日本語小説向け)
-
-以下はこのパッケージが行う本文フォーマットの概要です。主に日本語小説のプレーンテキスト／Markdown本文を読みやすい小説形式に整形します。
-
-- Frontmatter の維持: Markdown に YAML frontmatter (--- で囲まれたブロック) がある場合、本文だけを整形してから frontmatter を先頭に復元します。
-- セクション区切り: デフォルトのセパレータ文字列は SECTION_SEPARATOR です。元テキストの行にこの文字列が含まれている行は「セクション区切り」として扱い、前後を空行3つに正規化します。オプションで FormatNovelTextOptions.separator により変更可能です。
-- セリフの判定: 行の先頭が「、『、（ のいずれかで始まる行は「セリフ」と見なします。セリフ行は句点による改行分割や字下げの対象外です。
-- 句点での改行: セリフでない行は 。 のあとで改行して段落を分割します（句点が連続して改行済みの場合はそのまま）。
-- 字下げ: セリフ以外の各段落は全角スペース1文字で字下げ（例: 　本文）します。セリフは字下げしません。
-- 空行の正規化:
-  - セクション区切りの前後は空行3つ。
-  - セリフと地の文（通常文）の境目は空行2つ。
-  - セリフ同士が連続する場合は追加の空行は挟みません。
-
-### オプション
-
-- ignoreLinePrefixes (string[]) — 指定した文字列のいずれかで行頭が始まる行を本文から除外します。省略時は除外しません。行頭の空白は除去せずに判定します。
-- separator (string) — セクション区切りとして認識する文字列を変更できます。省略時は SECTION_SEPARATOR を使用。
-
-### 例（簡易）
-
-入力（抜粋）:
-
----
-title: サンプル
----
-
-これは本文です。続けます。
-「こんにちは」彼は言った。
-♦️◆♦️◆♦️◆
-
-出力（抜粋）:
-
----
-title: サンプル
----
-
-　これは本文です。
-
-　続けます。
-
-「こんにちは」彼は言った。
-
-
-
-　（次のセクションの本文）
+タグの push を契機に GitHub Actions がテスト・ビルドを実行し、`dist` を含めたリリースタグと GitHub Release を作成します。
