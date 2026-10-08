@@ -21,7 +21,7 @@ export function compile(text: string, options: CompileOptions = {}): string {
     .flatMap((line) => compileLine(line, separator))
     .flatMap((line) => (line.kind === "narration" ? splitNarration(line) : [line]));
 
-  return layoutLines(lines, options);
+  return layoutLines(lines);
 }
 
 function compileLine(line: Line, separator: string): Line[] {

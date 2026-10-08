@@ -15,7 +15,7 @@ export function format(text: string, options: FormatOptions = {}): string {
   const { frontmatter, body } = splitFrontmatter(text);
 
   const lines = parseLines(body, options).flatMap((line) => (line.kind === "narration" ? splitNarration(line) : [line]));
-  const formatted = layoutLines(lines, options);
+  const formatted = layoutLines(lines);
 
   return frontmatter === null ? formatted : joinFrontmatter(frontmatter, formatted);
 }

@@ -34,12 +34,6 @@ describe("format", () => {
       expect(format("「セリフ1」\n\n\n「セリフ2」")).toBe(lines("「セリフ1」", "「セリフ2」"));
     });
 
-    test("keeps blank lines between dialogue lines with preserveDialogueSpacing", () => {
-      expect(format("「セリフ1」\n\n\n「セリフ2」", { preserveDialogueSpacing: true })).toBe(
-        lines("「セリフ1」", "", "", "「セリフ2」"),
-      );
-    });
-
     test("treats a line with a trailing inline comment as dialogue", () => {
       expect(format("「セリフ」%%メモ%%")).toBe(lines("「セリフ」%%メモ%%"));
     });
