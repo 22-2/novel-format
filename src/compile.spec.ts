@@ -47,6 +47,16 @@ describe("compile", () => {
     expect(compile("（心中）\n「セリフ」")).toBe(lines("（心中）", "「セリフ」"));
   });
 
+  test("removes narration gap markers already in the text", () => {
+    expect(compile("（心中）\n\n\n%%地の文%%\n\n\n「セリフ」")).toBe(lines("（心中）", "「セリフ」"));
+  });
+
+  test("removes a non-comment narration gap marker", () => {
+    expect(compile("（心中）\n\n\n@地の文\n\n\n「セリフ」", { narrationGapMarker: "@地の文" })).toBe(
+      lines("（心中）", "「セリフ」"),
+    );
+  });
+
   test("normalizes notation", () => {
     expect(compile("「また魔物？最近多くない？。」")).toBe(lines("「また魔物？　最近多くない？」"));
   });

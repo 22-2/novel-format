@@ -8,11 +8,14 @@ import type { DialogueBracket, Line } from "./lines.js";
 const COVERED_BRACKETS: ReadonlySet<DialogueBracket> = new Set(["speech", "thought"]);
 
 /**
- * 同じ人物のセリフと心中が、地の文を挟まずに連続している位置に目印のコメントを挟む。
+ * 同じ人物のセリフと心中が、地の文を挟まずに連続している位置に目印を挟む。
  * marker が空文字なら何もしない。
  *
  * セリフの話者はテキストから判別できないため、心中に接するセリフは話者が違う場合もある。
  * 書き手が確かめる目印として入れ、自動で書き換えはしない。
+ *
+ * すでに目印がある位置には挟まらない。目印の行（kind が gap）はカッコを持たないため、
+ * 前後の組み合わせが対象にならない。
  */
 export function insertNarrationGapMarkers(lines: readonly Line[], marker: string): Line[] {
   if (marker === "") return [...lines];
@@ -23,15 +26,15 @@ export function insertNarrationGapMarkers(lines: readonly Line[], marker: string
 
   for (const line of lines) {
     if (line.kind === "comment") {
-      // すでにコメントが挟まっている位置には入れない。
-      // 理由: 目印自体がコメントなので、整形を繰り返しても目印が増えないようにするため。
+      // すでにコメントが挟まっている位置には入れない。書き手が手を入れた場所だと見なす
       result.push(line);
       previous = undefined;
       continue;
     }
 
     if (previous !== undefined && needsNarrationGap(previous, line)) {
-      result.push({ kind: "comment", text: marker, blankLinesBefore: 0 });
+      // 地の文が入る位置なので、地の文と同じく前後が空行二行になる kind にする
+      result.push({ kind: "gap", text: marker, blankLinesBefore: 2 });
     }
     result.push(line);
     previous = line;

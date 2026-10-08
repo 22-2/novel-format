@@ -27,6 +27,7 @@ export function compile(text: string, options: CompileOptions = {}): string {
 function compileLine(line: Line, separator: string): Line[] {
   switch (line.kind) {
     case "comment":
+    case "gap":
     case "trailer":
       return [];
     case "heading":

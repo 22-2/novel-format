@@ -112,16 +112,19 @@ describe("format", () => {
   });
 
   describe("narration gap markers", () => {
+    const withMarker = (first: string, second: string) =>
+      lines(first, "", "", "%%地の文%%", "", "", second);
+
     test.each([
-      ["（心中1）\n（心中2）", ["（心中1）", "%%地の文%%", "（心中2）"]],
-      ["（心中）\n「セリフ」", ["（心中）", "%%地の文%%", "「セリフ」"]],
-      ["「セリフ」\n（心中）", ["「セリフ」", "%%地の文%%", "（心中）"]],
-    ])("inserts a marker between 心中 and セリフ: %s", (input, expected) => {
-      expect(format(input)).toBe(lines(...expected));
+      ["（心中1）\n（心中2）", ["（心中1）", "（心中2）"]],
+      ["（心中）\n「セリフ」", ["（心中）", "「セリフ」"]],
+      ["「セリフ」\n（心中）", ["「セリフ」", "（心中）"]],
+    ])("inserts a marker surrounded by two blank lines: %s", (input, [first, second]) => {
+      expect(format(input)).toBe(withMarker(first!, second!));
     });
 
     test("inserts a marker even when blank lines separate them", () => {
-      expect(format("（心中）\n\n\n「セリフ」")).toBe(lines("（心中）", "%%地の文%%", "「セリフ」"));
+      expect(format("（心中）\n\n\n「セリフ」")).toBe(withMarker("（心中）", "「セリフ」"));
     });
 
     test("does not insert a marker between セリフ lines", () => {
@@ -149,8 +152,17 @@ describe("format", () => {
 
     test("uses a custom marker", () => {
       expect(format("（心中）\n「セリフ」", { narrationGapMarker: "%%TODO%%" })).toBe(
-        lines("（心中）", "%%TODO%%", "「セリフ」"),
+        lines("（心中）", "", "", "%%TODO%%", "", "", "「セリフ」"),
       );
+    });
+
+    test("keeps two blank lines around a marker already in the text", () => {
+      const text = lines("（心中）", "", "", "%%地の文%%", "", "", "「セリフ」");
+      expect(format(lines("（心中）", "%%地の文%%", "「セリフ」"))).toBe(text);
+    });
+
+    test("treats a marker inside a %% comment block as part of the comment", () => {
+      expect(format("本文。\n%%\n%%地の文%%\n%%")).toBe(lines("　本文。", "%%", "%%地の文%%", "%%"));
     });
 
     test("inserts no marker when narrationGapMarker is empty", () => {

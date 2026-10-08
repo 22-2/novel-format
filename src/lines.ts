@@ -1,4 +1,4 @@
-import { SECTION_SEPARATOR, SPLIT_MARKER, TRAILER_HEADING } from "./constants.js";
+import { NARRATION_GAP_MARKER, SECTION_SEPARATOR, SPLIT_MARKER, TRAILER_HEADING } from "./constants.js";
 import { COMMENT_DELIMITER, removeInlineComments, togglesCommentBlock } from "./comments.js";
 import { normalizeNotation } from "./notation.js";
 import type { FormatOptions } from "./types.js";
@@ -11,10 +11,20 @@ import type { FormatOptions } from "./types.js";
  * - separator: 区切り記号を含む行
  * - split: 区切りの目印（`@split`）を含む行。`## 翌朝@split` のような見出しも含む
  * - comment: `%%…%%` のコメント行、または commentPrefixes で始まる行
+ * - gap: 地の文を入れる位置を示す目印（narrationGapMarker）の行。地の文と同じ空行の扱いにする
  * - trailer: 本文の終わりを示す見出し（`## MOC`）から末尾まで。テキストは元のまま持つ
  * - break: compile で見出しを消した位置。テキストは出力せず、前後の空行だけを決める
  */
-export type LineKind = "narration" | "dialogue" | "heading" | "separator" | "split" | "comment" | "trailer" | "break";
+export type LineKind =
+  | "narration"
+  | "dialogue"
+  | "heading"
+  | "separator"
+  | "split"
+  | "comment"
+  | "gap"
+  | "trailer"
+  | "break";
 
 /**
  * セリフのカッコの種類
@@ -52,7 +62,11 @@ export function parseLines(
     separator = SECTION_SEPARATOR,
     commentPrefixes = [],
     trailerHeading = TRAILER_HEADING,
-  }: Pick<FormatOptions, "separator" | "commentPrefixes" | "trailerHeading"> = {},
+    narrationGapMarker = NARRATION_GAP_MARKER,
+  }: Pick<
+    FormatOptions,
+    "separator" | "commentPrefixes" | "trailerHeading" | "narrationGapMarker"
+  > = {},
 ): Line[] {
   const rawLines = body.split(/\r\n|\n|\r/);
   const lines: Line[] = [];
@@ -63,6 +77,16 @@ export function parseLines(
 
   for (const [index, raw] of rawLines.entries()) {
     const trimmed = raw.trim();
+
+    // 目印は `%%…%%` の形をしているため、コメントの判定より先に見る。
+    // 理由: コメント行にすると前後の空行が元のまま残り、再整形で空行二行が保てないため。
+    if (!inCommentBlock && narrationGapMarker !== "" && trimmed === narrationGapMarker) {
+      lines.push({ kind: "gap", text: trimmed, blankLinesBefore });
+      blankLinesBefore = 0;
+      openQuotes = 0;
+      continue;
+    }
+
     // コメントブロックの中は空行も含めてコメントの一部なので、空行の判定より先に見る
     const isCommentBlockLine = inCommentBlock || trimmed.startsWith(COMMENT_DELIMITER);
 
