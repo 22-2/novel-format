@@ -16,6 +16,12 @@ export interface FormatOptions {
    * デフォルト: false（セリフ同士の間の空行は詰める）
    */
   preserveDialogueSpacing?: boolean;
+  /**
+   * 本文の終わりを示す見出しの名前。この名前の見出し（`## MOC` など）から後ろは本文として扱わない。
+   * format では手を加えずに残し、compile では除去する。空文字を指定すると無効になる。
+   * デフォルト: TRAILER_HEADING（`MOC`）
+   */
+  trailerHeading?: string;
 }
 
 export type CompileOptions = FormatOptions;

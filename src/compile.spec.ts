@@ -11,7 +11,7 @@ describe("compile", () => {
   });
 
   test("leaves two blank lines even when the heading had no blank lines around it", () => {
-    expect(compile("「セリフ。」\n## 見出し\n「セリフ。」")).toBe(lines("「セリフ。」", "", "", "「セリフ。」"));
+    expect(compile("「セリフ」\n## 見出し\n「セリフ」")).toBe(lines("「セリフ」", "", "", "「セリフ」"));
   });
 
   test("removes frontmatter", () => {
@@ -33,6 +33,18 @@ describe("compile", () => {
 
   test("replaces @split with the separator", () => {
     expect(compile("前\n@split\n後", { separator: "◇" })).toBe(lines("　前", "", "", "", "◇", "", "", "", "　後"));
+  });
+
+  test("replaces headings with @split with the separator", () => {
+    expect(compile("前\n## 翌朝@split\n後")).toBe(lines("　前", "", "", "", "＊＊＊", "", "", "", "　後"));
+  });
+
+  test("removes the MOC section", () => {
+    expect(compile("本文。\n\n## MOC\n- [[ノート]]")).toBe(lines("　本文。"));
+  });
+
+  test("normalizes notation", () => {
+    expect(compile("「また魔物？最近多くない？。」")).toBe(lines("「また魔物？　最近多くない？」"));
   });
 
   test("returns an empty string when nothing remains", () => {

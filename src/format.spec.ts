@@ -11,37 +11,37 @@ describe("format", () => {
     });
 
     test("does not break before a closing bracket", () => {
-      expect(format("彼は「はい。」と言った。")).toBe(lines("　彼は「はい。」と言った。"));
+      expect(format("彼は「はい。」と言った。")).toBe(lines("　彼は「はい」と言った。"));
     });
   });
 
   describe("dialogue", () => {
     test("does not break lines on 。 inside dialogue", () => {
-      expect(format("「セリフ。セリフ。」")).toBe(lines("「セリフ。セリフ。」"));
+      expect(format("「セリフ。セリフ」")).toBe(lines("「セリフ。セリフ」"));
     });
 
     test("ensures two blank lines between narration and dialogue", () => {
-      expect(format("地の文。\n「セリフ。」\n地の文。")).toBe(lines("　地の文。", "", "", "「セリフ。」", "", "", "　地の文。"));
+      expect(format("地の文。\n「セリフ」\n地の文。")).toBe(lines("　地の文。", "", "", "「セリフ」", "", "", "　地の文。"));
     });
 
     test("normalizes multiple blank lines around dialogue to exactly two", () => {
-      expect(format("地の文。\n\n\n\n「セリフ。」\n\n\n地の文。")).toBe(
-        lines("　地の文。", "", "", "「セリフ。」", "", "", "　地の文。"),
+      expect(format("地の文。\n\n\n\n「セリフ」\n\n\n地の文。")).toBe(
+        lines("　地の文。", "", "", "「セリフ」", "", "", "　地の文。"),
       );
     });
 
     test("removes blank lines between dialogue lines", () => {
-      expect(format("「セリフ1。」\n\n\n「セリフ2。」")).toBe(lines("「セリフ1。」", "「セリフ2。」"));
+      expect(format("「セリフ1」\n\n\n「セリフ2」")).toBe(lines("「セリフ1」", "「セリフ2」"));
     });
 
     test("keeps blank lines between dialogue lines with preserveDialogueSpacing", () => {
-      expect(format("「セリフ1。」\n\n\n「セリフ2。」", { preserveDialogueSpacing: true })).toBe(
-        lines("「セリフ1。」", "", "", "「セリフ2。」"),
+      expect(format("「セリフ1」\n\n\n「セリフ2」", { preserveDialogueSpacing: true })).toBe(
+        lines("「セリフ1」", "", "", "「セリフ2」"),
       );
     });
 
     test("treats a line with a trailing inline comment as dialogue", () => {
-      expect(format("「セリフ。」%%メモ%%")).toBe(lines("「セリフ。」%%メモ%%"));
+      expect(format("「セリフ」%%メモ%%")).toBe(lines("「セリフ」%%メモ%%"));
     });
   });
 
@@ -61,8 +61,8 @@ describe("format", () => {
 
   describe("headings", () => {
     test("keeps headings without indent and puts two blank lines around them", () => {
-      expect(format("## 見出し\nテキスト\nテキスト\n## 見出し\n「セリフ。」")).toBe(
-        lines("## 見出し", "", "", "　テキスト", "　テキスト", "", "", "## 見出し", "", "", "「セリフ。」"),
+      expect(format("## 見出し\nテキスト\nテキスト\n## 見出し\n「セリフ」")).toBe(
+        lines("## 見出し", "", "", "　テキスト", "　テキスト", "", "", "## 見出し", "", "", "「セリフ」"),
       );
     });
 
@@ -92,8 +92,58 @@ describe("format", () => {
       expect(format("前\n◇\n後", { separator: "◇" })).toBe(lines("　前", "", "", "", "◇", "", "", "", "　後"));
     });
 
+    test("treats headings with @split as section breaks", () => {
+      expect(format("前\n## 翌朝@split\n後")).toBe(lines("　前", "", "", "", "## 翌朝@split", "", "", "", "　後"));
+    });
+
     test("keeps @split markers as section breaks", () => {
       expect(format("前\n@split\n後")).toBe(lines("　前", "", "", "", "@split", "", "", "", "　後"));
+    });
+  });
+
+  describe("multi-line quotes", () => {
+    test("keeps lines of a multi-line 『』 together without indent", () => {
+      expect(format("地の文。\n『一行目。\n二行目。\n三行目』\n地の文。")).toBe(
+        lines("　地の文。", "", "", "『一行目。", "二行目。", "三行目』", "", "", "　地の文。"),
+      );
+    });
+
+    test("does not treat narration starting with a closed 『』 as a quote", () => {
+      expect(format("『本』を読んだ。\n地の文。")).toBe(lines("　『本』を読んだ。", "　地の文。"));
+    });
+
+    test("ends an unclosed 『 at a blank line", () => {
+      expect(format("『閉じ忘れ\n\n地の文。")).toBe(lines("『閉じ忘れ", "", "", "　地の文。"));
+    });
+  });
+
+  describe("notation", () => {
+    test("normalizes notation in narration and dialogue", () => {
+      expect(format("待って…\n「え!? 本当？。」")).toBe(lines("　待って……", "", "", "「え！？　本当？」"));
+    });
+
+    test("does not change headings and comments", () => {
+      expect(format("## 見出し…\n// メモ…\n%%\nメモ…\n%%", { commentPrefixes: ["//"] })).toBe(
+        lines("## 見出し…", "// メモ…", "%%", "メモ…", "%%"),
+      );
+    });
+  });
+
+  describe("trailer", () => {
+    test("keeps the MOC section unchanged", () => {
+      expect(format("本文。\n## MOC\n- Relateds\n    - [[ノート]]\n\n- References\n")).toBe(
+        lines("　本文。", "", "", "## MOC", "- Relateds", "    - [[ノート]]", "", "- References"),
+      );
+    });
+
+    test("uses a custom trailer heading", () => {
+      expect(format("本文。\n# メモ\n書きかけ。", { trailerHeading: "メモ" })).toBe(
+        lines("　本文。", "", "", "# メモ", "書きかけ。"),
+      );
+    });
+
+    test("does not treat MOC as a trailer when trailerHeading is empty", () => {
+      expect(format("## MOC\n本文", { trailerHeading: "" })).toBe(lines("## MOC", "", "", "　本文"));
     });
   });
 
