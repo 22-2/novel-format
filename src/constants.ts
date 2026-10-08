@@ -6,3 +6,6 @@ export const SPLIT_MARKER = "@split";
 
 /** デフォルトの本文の終わりを示す見出しの名前。この見出しから後ろは本文として扱わない */
 export const TRAILER_HEADING = "MOC";
+
+/** デフォルトの目印。心中とセリフが地の文を挟まずに連続する位置に、format が挟むコメント */
+export const NARRATION_GAP_MARKER = "%%地の文%%";

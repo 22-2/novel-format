@@ -111,6 +111,53 @@ describe("format", () => {
     });
   });
 
+  describe("narration gap markers", () => {
+    test.each([
+      ["（心中1）\n（心中2）", ["（心中1）", "%%地の文%%", "（心中2）"]],
+      ["（心中）\n「セリフ」", ["（心中）", "%%地の文%%", "「セリフ」"]],
+      ["「セリフ」\n（心中）", ["「セリフ」", "%%地の文%%", "（心中）"]],
+    ])("inserts a marker between 心中 and セリフ: %s", (input, expected) => {
+      expect(format(input)).toBe(lines(...expected));
+    });
+
+    test("inserts a marker even when blank lines separate them", () => {
+      expect(format("（心中）\n\n\n「セリフ」")).toBe(lines("（心中）", "%%地の文%%", "「セリフ」"));
+    });
+
+    test("does not insert a marker between セリフ lines", () => {
+      expect(format("「セリフ1」\n「セリフ2」")).toBe(lines("「セリフ1」", "「セリフ2」"));
+    });
+
+    test("does not insert a marker next to 『』", () => {
+      expect(format("『表示』\n（心中）\n『表示』")).toBe(lines("『表示』", "（心中）", "『表示』"));
+    });
+
+    test("does not insert a marker when narration separates them", () => {
+      expect(format("（心中）\n地の文。\n「セリフ」")).toBe(
+        lines("（心中）", "", "", "　地の文。", "", "", "「セリフ」"),
+      );
+    });
+
+    test("does not insert a marker when a comment already separates them", () => {
+      expect(format("（心中）\n%%あとで直す%%\n「セリフ」")).toBe(lines("（心中）", "%%あとで直す%%", "「セリフ」"));
+    });
+
+    test("does not add another marker when formatting again", () => {
+      const once = format("（心中）\n「セリフ」");
+      expect(format(once)).toBe(once);
+    });
+
+    test("uses a custom marker", () => {
+      expect(format("（心中）\n「セリフ」", { narrationGapMarker: "%%TODO%%" })).toBe(
+        lines("（心中）", "%%TODO%%", "「セリフ」"),
+      );
+    });
+
+    test("inserts no marker when narrationGapMarker is empty", () => {
+      expect(format("（心中）\n「セリフ」", { narrationGapMarker: "" })).toBe(lines("（心中）", "「セリフ」"));
+    });
+  });
+
   describe("notation", () => {
     test("normalizes notation in narration and dialogue", () => {
       expect(format("待って…\n「え!? 本当？。」")).toBe(lines("　待って……", "", "", "「え！？　本当？」"));

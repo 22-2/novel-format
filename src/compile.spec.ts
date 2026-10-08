@@ -43,6 +43,10 @@ describe("compile", () => {
     expect(compile("本文。\n\n## MOC\n- [[ノート]]")).toBe(lines("　本文。"));
   });
 
+  test("does not insert narration gap markers", () => {
+    expect(compile("（心中）\n「セリフ」")).toBe(lines("（心中）", "「セリフ」"));
+  });
+
   test("normalizes notation", () => {
     expect(compile("「また魔物？最近多くない？。」")).toBe(lines("「また魔物？　最近多くない？」"));
   });

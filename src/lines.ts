@@ -16,19 +16,29 @@ import type { FormatOptions } from "./types.js";
  */
 export type LineKind = "narration" | "dialogue" | "heading" | "separator" | "split" | "comment" | "trailer" | "break";
 
+/**
+ * セリフのカッコの種類
+ * - speech: `「」` のセリフ
+ * - thought: `（）` の心中。視点人物の思考なので、話者が分かる
+ * - quote: `『』` の声・表示。表示文言や人ならざる声で、視点人物の発言ではない
+ */
+export type DialogueBracket = "speech" | "thought" | "quote";
+
 export interface Line {
   kind: LineKind;
   text: string;
   /** 元テキストでこの行の直前にあった連続空行の数 */
   blankLinesBefore: number;
+  /** kind が dialogue のときのカッコの種類 */
+  bracket?: DialogueBracket;
 }
 
 const HEADING_PATTERN = /^#{1,6}\s/;
 
-const DIALOGUE_BRACKETS: Readonly<Record<string, string>> = {
-  "「": "」",
-  "『": "』",
-  "（": "）",
+const DIALOGUE_BRACKETS: Readonly<Record<string, { closer: string; bracket: DialogueBracket }>> = {
+  "「": { closer: "」", bracket: "speech" },
+  "『": { closer: "』", bracket: "quote" },
+  "（": { closer: "）", bracket: "thought" },
 };
 
 /** 複数行にわたってよいカッコ。表示・再生された文言は、開きから閉じまでを連続した行で書くため */
@@ -82,13 +92,17 @@ export function parseLines(
       const continuesQuote = openQuotes > 0;
       const unclosedQuotes = countUnclosedQuotes(content);
       const startsQuote = !continuesQuote && content.startsWith(MULTILINE_OPEN) && unclosedQuotes > 0;
+      const isQuoteLine = continuesQuote || startsQuote;
+      const closedBracket = dialogueBracketOf(content);
+      const kind = isQuoteLine || closedBracket !== undefined ? "dialogue" : "narration";
 
       lines.push({
-        kind: continuesQuote || startsQuote || isDialogue(content) ? "dialogue" : "narration",
+        kind,
         text,
         blankLinesBefore,
+        ...(kind === "dialogue" && { bracket: isQuoteLine ? "quote" : closedBracket }),
       });
-      openQuotes = continuesQuote || startsQuote ? Math.max(0, openQuotes + unclosedQuotes) : 0;
+      openQuotes = isQuoteLine ? Math.max(0, openQuotes + unclosedQuotes) : 0;
     }
     blankLinesBefore = 0;
 
@@ -122,9 +136,10 @@ function classifyStructure(
   return null;
 }
 
-function isDialogue(text: string): boolean {
-  const closer = DIALOGUE_BRACKETS[text.charAt(0)];
-  return closer !== undefined && text.endsWith(closer);
+/** 対応するカッコで始まり閉じカッコで終わる行なら、そのカッコの種類を返す */
+function dialogueBracketOf(text: string): DialogueBracket | undefined {
+  const entry = DIALOGUE_BRACKETS[text.charAt(0)];
+  return entry !== undefined && text.endsWith(entry.closer) ? entry.bracket : undefined;
 }
 
 function countUnclosedQuotes(text: string): number {

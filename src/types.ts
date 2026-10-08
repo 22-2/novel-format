@@ -17,6 +17,13 @@ export interface FormatOptions {
    * デフォルト: TRAILER_HEADING（`MOC`）
    */
   trailerHeading?: string;
+  /**
+   * 心中（`（）`）とセリフ（`「」`）が地の文を挟まずに連続する位置に挟む目印。
+   * format だけで使い、compile では挟まない。空文字を指定すると挟まない。
+   * 直前にコメント行がある位置には挟まないので、整形を繰り返しても増えない。
+   * デフォルト: NARRATION_GAP_MARKER（`%%地の文%%`）
+   */
+  narrationGapMarker?: string;
 }
 
 export type CompileOptions = FormatOptions;
